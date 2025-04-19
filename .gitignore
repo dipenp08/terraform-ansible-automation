@@ -1,0 +1,9 @@
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.log
+*.mkv
+*.zip
+*.pem
+*.key
+*.crt
