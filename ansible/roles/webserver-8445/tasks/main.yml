@@ -1,0 +1,21 @@
+---
+- name: Install Apache
+  apt:
+    name: apache2
+    state: present
+    update_cache: yes
+
+- name: Copy VM-specific index.html
+  copy:
+    src: "vm{{ inventory_hostname[-1] }}.html"
+    dest: /var/www/html/index.html
+    owner: root
+    group: root
+    mode: '0444'
+
+- name: Start Apache service
+  service:
+    name: apache2
+    state: started
+    enabled: yes
+  notify: restart apache

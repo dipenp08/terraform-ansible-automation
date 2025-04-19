@@ -1,0 +1,10 @@
+---
+- name: Add custom lines to /etc/profile
+  lineinfile:
+    path: /etc/profile
+    line: "{{ item }}"
+    create: yes
+    state: present
+  loop:
+    - "#Test block added by Ansible……user100"
+    - "export TMOUT=1500"

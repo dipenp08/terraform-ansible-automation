@@ -1,0 +1,21 @@
+- name: Configure Data Disks
+  hosts: all
+  become: yes
+  roles:
+    - datadisk-8445
+- name: Configure Data Disks
+  hosts: all
+  become: yes
+  roles:
+    - datadisk-8445
+    - user-8445
+- name: Configure Profile Timeout
+  hosts: all
+  become: yes
+  roles:
+    - profile-8445
+- name: Configure Apache Web Server
+  hosts: all
+  become: yes
+  roles:
+    - webserver-8445

@@ -1,0 +1,63 @@
+---
+- name: Ensure group cloudadmins exists
+  group:
+    name: cloudadmins
+    state: present
+
+- name: Create users and assign to groups
+  user:
+    name: "{{ item }}"
+    groups: "cloudadmins,sudo"
+    append: yes
+    shell: /bin/bash
+    state: present
+  loop:
+    - user100
+    - user200
+    - user300
+
+- name: Ensure .ssh directory exists
+  file:
+    path: "/home/{{ item }}/.ssh"
+    state: directory
+    mode: "0700"
+    owner: "{{ item }}"
+    group: "{{ item }}"
+  loop:
+    - user100
+    - user200
+    - user300
+
+- name: Generate SSH keypair for each user (no passphrase)
+  become: true
+  shell: |
+    ssh-keygen -t rsa -b 2048 -f /home/{{ item }}/.ssh/id_rsa -N ""
+  args:
+    executable: /bin/bash
+    creates: "/home/{{ item }}/.ssh/id_rsa"
+  loop:
+    - user100
+    - user200
+    - user300
+
+- name: Fix permissions for id_rsa
+  file:
+    path: "/home/{{ item }}/.ssh/id_rsa"
+    mode: "0600"
+    owner: "{{ item }}"
+    group: "{{ item }}"
+  loop:
+    - user100
+    - user200
+    - user300
+
+- name: Fix permissions for id_rsa.pub
+  file:
+    path: "/home/{{ item }}/.ssh/id_rsa.pub"
+    mode: "0644"
+    owner: "{{ item }}"
+    group: "{{ item }}"
+  loop:
+    - user100
+    - user200
+    - user300

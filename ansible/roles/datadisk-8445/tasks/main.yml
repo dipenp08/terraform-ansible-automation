@@ -1,0 +1,59 @@
+---
+- name: Get the device name of the attached data disk
+  shell: |
+    lsblk -dpno NAME,SIZE | grep 10G | awk '{print $1}'
+  register: disk_output
+
+- name: Create 2 partitions (4GB and 5GB)
+  shell: |
+    (
+      echo n; echo p; echo 1; echo ; echo +4G;
+      echo n; echo p; echo 2; echo ; echo +5G;
+      echo w;
+    ) | fdisk {{ disk_output.stdout }}
+  become: yes
+
+- name: Format first partition to XFS
+  filesystem:
+    fstype: xfs
+    dev: "{{ disk_output.stdout }}1"
+  become: yes
+
+- name: Format second partition to EXT4
+  filesystem:
+    fstype: ext4
+    dev: "{{ disk_output.stdout }}2"
+  become: yes
+
+- name: Create mount points
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - /part1
+    - /part2
+  become: yes
+
+- name: Mount partitions
+  mount:
+    path: "{{ item.mount_point }}"
+    src: "{{ item.device }}"
+    fstype: "{{ item.fstype }}"
+    state: mounted
+  loop:
+    - { mount_point: "/part1", device: "{{ disk_output.stdout }}1", fstype: "xfs" }
+    - { mount_point: "/part2", device: "{{ disk_output.stdout }}2", fstype: "ext4" }
+  become: yes
+
+- name: Ensure mounts are persistent in /etc/fstab
+  mount:
+    path: "{{ item.mount_point }}"
+    src: "{{ item.device }}"
+    fstype: "{{ item.fstype }}"
+    opts: defaults
+    state: present
+  loop:
+    - { mount_point: "/part1", device: "{{ disk_output.stdout }}1", fstype: "xfs" }
+    - { mount_point: "/part2", device: "{{ disk_output.stdout }}2", fstype: "ext4" }
+  become: yes
